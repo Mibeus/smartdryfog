@@ -7,7 +7,7 @@ set -e
 # Aktualizacia systemu
 echo "Aktualizujem system..."
 sudo apt update
-sudo apt upgrade -y
+sudo apt upgrade --fix-missing -y || echo "Upgrade mal problemy, pokracujem dalej..."
 
 # Instalacia zavislosti
 echo "Instalujem zavislosti..."
@@ -15,7 +15,6 @@ sudo apt install -y libssl-dev git libcurl4-gnutls-dev libcereal-dev \
     build-essential cmake libboost-dev libboost-thread-dev libboost-system-dev \
     libsqlite3-dev curl libcurl4-openssl-dev libusb-dev zlib1g-dev \
     libssl-dev python3-dev liblua5.3-dev libcereal-dev pkg-config
-
 
 # Stiahnutie Domoticz
 echo "Stiahavam Domoticz 2024.4..."
@@ -275,7 +274,6 @@ fi
 # Cistenie
 echo "Cistenie..."
 rm -f /tmp/domoticz_linux_armv7l.tgz
-rm -f /tmp/wiringpi-latest.deb
 
 echo "Instalacia dokoncena!"
 echo "Domoticz je dostupny na: http://$(hostname).local:8086"
