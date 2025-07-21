@@ -4,11 +4,16 @@
 # Zastavime pri chybe
 set -e
 
-
 # Vytvorenie uzivatela pre MQTT
 echo "Vytvoram MQTT uzivatela..."
-sudo mosquitto_passwd -c /etc/mosquitto/passfile dryfogmqtt
+MQTT_PASSWORD="Vgy5Js9TYcuh"
+echo "$MQTT_PASSWORD" | sudo mosquitto_passwd -c /etc/mosquitto/passfile dryfogmqtt
+echo "MQTT uzivatel vytvoreny s heslom: $MQTT_PASSWORD"
+echo "Heslo ulozene v /home/RTTSK/mqtt_password.txt"
+echo "Uzivatel: dryfogmqtt" > /home/RTTSK/mqtt_password.txt
+echo "Heslo: $MQTT_PASSWORD" >> /home/RTTSK/mqtt_password.txt
 mosquitto -h | grep version
+
 
 # Uprava konfiguracie Mosquitto
 echo "Upravenie konfiguracie Mosquitto..."
