@@ -4,7 +4,6 @@
 # Zastavime pri chybe
 set -e
 
-
 mosquitto -h | grep version
 
 
