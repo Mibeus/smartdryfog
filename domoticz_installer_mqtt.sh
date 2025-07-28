@@ -1,11 +1,70 @@
-#!/bin/bash
-# Jednoducha instalacia Domoticz 2024.4 do /home/RTTSK/smartdryfog
+# Cistenie
+echo "Cistenie..."
+rm -f /tmp/domoticz_linux_armv7l.tgz
+rm -f /tmp/domoticz.sh
 
-# Zastavime pri chybe
-set -e
+echo "Instalacia dokoncena!"
+echo "Domoticz je dostupny na: http://$(hostname).local:8086"
+echo "Ovladanie sluzby:"
+echo "  sudo service domoticz.sh start"
+echo "  sudo service domoticz.sh stop"
+echo "  sudo service domoticz.sh restart"
+echo "  sudo service domoticz.sh status"
+echo ""
+echo "Stlacte lubovolne tlacidlo pre ukoncenie..."
+read -n 1 -s
 
+
+# Instalacia monit
+echo "Instalujem Monit..."
+sudo apt-get install -y monit
+
+# Uprava monitrc pre kontrolu Domoticz
+echo "Upravenie monitrc..."
+sudo bash -c "cat > /etc/monit/monitrc << 'EOFMONIT'
+set daemon 120      #check services at 2-minute intervals
+set log /var/log/monit.log
+set idfile /var/lib/monit/id
+set statefile /var/lib/monit/state
+set eventqueue
+    basedir /var/lib/monit/events
+    slots 100
+set httpd port 2812
+use address localhost
+allow localhost
+allow admin:monit
+check process domoticz with pidfile /var/run/domoticz.pid
+  start program = \"/usr/bin/sudo /bin/systemctl start domoticz.service\"
+  stop  program = \"/usr/bin/sudo /bin/systemctl stop domoticz.service\"
+  if failed
+     url http://127.0.0.1:8086/json.htm?type=command&param=getversion
+         and content = '\"status\" : \"OK\"'
+     for 2 cycles
+     then restart
+  if 5 restarts within 5 cycles then exec \"/sbin/reboot\"
+include /etc/monit/conf.d/*
+include /etc/monit/conf-enabled/*
+EOFMONIT"
+
+# Nastavenie spravnych opravneni
+sudo chmod 700 /etc/monit/monitrc
+
+# Instalacia WiringPi
+echo "Instalujem WiringPi..."
+cd /tmp
+wget https://project-downloads.drogon.net/wiringpi-latest.deb
+sudo dpkg -i wiringpi-latest.deb
+gpio -v
+
+# Instalacia Mosquitto
+echo "Instalujem Mosquitto..."
+sudo apt install -y mosquitto mosquitto-clients
+sudo systemctl enable mosquitto.service
+
+# Vytvorenie uzivatela pre MQTT
+echo "Vytvoram MQTT uzivatela..."
+sudo mosquitto_passwd -c /etc/mosquitto/passfile dryfogmqtt
 mosquitto -h | grep version
-
 
 # Uprava konfiguracie Mosquitto
 echo "Upravenie konfiguracie Mosquitto..."
